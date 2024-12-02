@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyNoter</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            background-color: #282c34;
+            color: #61dafb;
+            font-family: 'Roboto', sans-serif;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #20232a;
+            padding: 10px 20px;
+            font-size: 24px;
+            border-bottom: 1px solid #61dafb;
+        }
+        #title-container {
+            display: flex;
+            flex-direction: column;
+        }
+        #subtitle {
+            font-size: 14px;
+            color: white;
+            margin-top: 5px;
+        }
+        #buttons {
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #61dafb;
+            color: #20232a;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Roboto', sans-serif;
+        }
+        #editor {
+            width: 100%;
+            height: calc(100% - 90px);
+            font-size: 16px;
+        }
+        #loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        #progress-bar {
+            width: 80%;
+            background-color: #ddd;
+            border-radius: 25px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        #progress-bar > div {
+            height: 20px;
+            width: 0;
+            background-color: #61dafb;
+            text-align: center;
+            line-height: 20px;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div id="title-container">
+            <div>PyNoter</div>
+            <div id="subtitle">Made by ThatGodlyBacon</div>
+        </div>
+        <div id="buttons">
+            <button id="open-button">Open File</button>
+            <button id="save-button">Save File</button>
+            <button id="copy-button">Copy</button>
+            <button id="execute-button">Execute</button>
+            <button id="clear-button">Clear</button>
+        </div>
+    </header>
+    <div id="editor">print("Hello, World!")</div>
+    <div id="loading">
+        <span>Loading...</span>
+        <div id="progress-bar"><div></div></div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ext-language_tools.js"></script>
+    <script>
+        var editor = ace.edit("editor");
+        editor.setTheme("ace/theme/monokai");
+        editor.session.setMode("ace/mode/python");
+        editor.setOptions({
+            enableBasicAutocompletion: true,
+            enableLiveAutocompletion: true,
+            enableSnippets: true
+        });
+
+        document.getElementById('clear-button').addEventListener('click', function() {
+            editor.setValue('');
+        });
+
+        document.getElementById('copy-button').addEventListener('click', function() {
+            var code = editor.getValue();
+            navigator.clipboard.writeText(code).then(function() {
+                alert('Code copied to clipboard!');
+            }, function(err) {
+                console.error('Could not copy text: ', err);
+            });
+        });
+
+        document.getElementById('open-button').addEventListener('click', function() {
+            var input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.py';
+            input.onchange = function(event) {
+                var file = event.target.files[0];
+                if (file) {
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        editor.setValue(e.target.result);
+                    };
+                    reader.readAsText(file);
+                }
+            };
+            input.click();
+        });
+
+        document.getElementById('save-button').addEventListener('click', function() {
+            var code = editor.getValue();
+            var blob = new Blob([code], {type: 'text/plain'});
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'script.py';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        document.getElementById('execute-button').addEventListener('click', function() {
+            var code = editor.getValue();
+            var blob = new Blob([code], {type: 'text/plain'});
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'script.py';
+            a.click();
+
+            alert("The script has been downloaded. To execute it, open your terminal or command prompt, navigate to the download location, and run: python script.py");
+        });
+
+        editor.commands.addCommand({
+            name: 'showHelp',
+            bindKey: {win: 'Ctrl-Space', mac: 'Ctrl-Space'},
+            exec: function(editor) {
+                editor.execCommand("startAutocomplete");
+            }
+        });
+    </script>
+</body>
+</html>
